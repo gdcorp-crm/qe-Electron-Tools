@@ -1,0 +1,18 @@
+{
+  "name": "qe-electron-tools",
+  "version": "1.0.0",
+  "description": "Collection of Electron-based QE tools",
+  "private": true,
+  "scripts": {
+    "nightly-stats": "cd NightlyStats-Electron && npm start",
+    "nightly-stats:dev": "cd NightlyStats-Electron && npm run dev",
+    "nightly-stats:build": "cd NightlyStats-Electron && npm run build"
+  },
+  "keywords": [
+    "electron",
+    "qe-tools",
+    "test-automation"
+  ],
+  "author": "",
+  "license": "ISC"
+}

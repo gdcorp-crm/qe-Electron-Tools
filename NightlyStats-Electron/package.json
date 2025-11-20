@@ -1,0 +1,48 @@
+{
+  "name": "nightly-stats-electron",
+  "version": "1.0.0",
+  "description": "Electron app to replace Nightly Stats Tool",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build": "electron-packager . \"Nightly Stats\" --platform=win32 --arch=x64 --out=dist --overwrite --asar --icon=Resources/NightlyStats.ico",
+    "build:installer": "set CSC_IDENTITY_AUTO_DISCOVERY=false && electron-builder --win nsis"
+  },
+  "keywords": [
+    "electron",
+    "nightly-stats",
+    "test-automation"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^39.2.3",
+    "electron-builder": "^24.6.4",
+    "electron-packager": "^17.1.2"
+  },
+  "dependencies": {
+    "axios": "^1.7.9",
+    "dotenv": "^16.4.7",
+    "mssql": "^12.1.0"
+  },
+  "build": {
+    "appId": "com.godaddy.nightlystats",
+    "productName": "Nightly Stats",
+    "win": {
+      "target": "portable",
+      "sign": false,
+      "icon": "Resources/NightlyStats.ico"
+    },
+    "files": [
+      "**/*",
+      "!node_modules/**/*",
+      "node_modules/mssql/**/*",
+      "node_modules/axios/**/*",
+      "node_modules/dotenv/**/*"
+    ],
+    "directories": {
+      "output": "dist"
+    }
+  }
+}

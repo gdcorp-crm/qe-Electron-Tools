@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nightly Stats Tool</title>
+    <link rel="icon" type="image/x-icon" href="Resources/NightlyStats.ico">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <img src="Resources/NightlyStats.ico" alt="Nightly Stats Icon" class="header-icon" onerror="this.style.display='none'">
+            <h1>Nightly Stats Tool</h1>
+        </header>
+
+        <!-- Failed Tests Section -->
+        <section class="section failed-tests-section">
+            <h2>Failed Tests</h2>
+            <div class="filters">
+                <div class="filter-group">
+                    <label>Run Date:</label>
+                    <input type="date" id="runDate" />
+                </div>
+                <div class="filter-group">
+                    <label>Env:</label>
+                    <select id="envFilter">
+                        <option value="--">--</option>
+                        <option value="TEST">TEST</option>
+                        <option value="PROD">PROD</option>
+                        <option value="A2">A2</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Project:</label>
+                    <select id="projectFilter">
+                        <option value="--">--</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Type:</label>
+                    <select id="typeFilter">
+                        <option value="--">--</option>
+                        <option value="UI">UI</option>
+                        <option value="API">API</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Browser:</label>
+                    <select id="browserFilter">
+                        <option value="--">--</option>
+                        <option value="Firefox">Firefox</option>
+                        <option value="Chrome">Chrome</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Owner:</label>
+                    <select id="ownerFilter">
+                        <option value="--">--</option>
+                        <option value="Christa">Christa</option>
+                        <option value="Becky">Becky</option>
+                        <option value="Abbee">Abbee</option>
+                        <option value="N/A">N/A</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>
+                        <input type="checkbox" id="notDiscountedOnly" />
+                        Not Discounted Only
+                    </label>
+                </div>
+                <div class="filter-group filter-buttons">
+                    <button id="resetFilters" class="btn btn-secondary">Reset Filters</button>
+                    <button id="refreshTable" class="btn btn-primary">Refresh Table</button>
+                </div>
+            </div>
+            <div class="table-container">
+                <table id="failedTestsTable" class="data-table">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="selectAll" /></th>
+                            <th>Id</th>
+                            <th>Build No</th>
+                            <th>Type</th>
+                            <th>Env</th>
+                            <th>Project</th>
+                            <th>Test Name</th>
+                            <th>Rerun</th>
+                            <th>Error</th>
+                            <th>Disc Code</th>
+                            <th>Disc Reason</th>
+                            <th>Browser</th>
+                            <th>Owner</th>
+                            <th>Create Date UTC</th>
+                        </tr>
+                    </thead>
+                    <tbody id="failedTestsBody">
+                        <!-- Data will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="table-divider"></div>
+            <div class="table-footer-container">
+                <div class="footer-left-section">
+                    <div class="post-stats-button-container">
+                        <button id="postNightlyStats" class="btn btn-success">Post Nightly Stats</button>
+                    </div>
+                    <div class="footer-divider"></div>
+                    <div class="footer-action-buttons">
+                        <button id="openScreenshot" class="btn btn-primary btn-small">Open Screenshot</button>
+                        <button id="openTestDetails" class="btn btn-primary btn-small">Open Test Details</button>
+                        <button id="launchJob" class="btn btn-primary btn-small">Launch Jenkins Run</button>
+                        <button id="rerunTest" class="btn btn-primary btn-small">Rerun Selected Test(s)</button>
+                    </div>
+                </div>
+                <div class="tests-displayed-container">
+                    <label>Tests Displayed: <span id="totalTests">0</span></label>
+                </div>
+            </div>
+        </section>
+
+        <!-- Manual Discounting, Run Job, and Actions Layout -->
+        <div class="discount-run-job-layout">
+            <!-- Discounting Section -->
+            <section class="section discounting-section">
+                <div class="discounting-header">
+                    <h2>Manual Discounting</h2>
+                    <button id="discountSelected" class="btn btn-primary">Discount Selected Tests</button>
+                </div>
+                <p class="instruction-text">Select test(s) from top table to discount manually</p>
+                <div class="discount-controls">
+                    <div class="form-group">
+                        <label>Discount Code:</label>
+                        <select id="discountCode">
+                            <option value="">Select...</option>
+                            <option value="External Team">External Team</option>
+                            <option value="CRM DevOps">CRM DevOps</option>
+                            <option value="Bug Found By Automation">Bug Found By Automation</option>
+                            <option value="Code Change">Code Change</option>
+                            <option value="Automation Testing">Automation Testing</option>
+                            <option value="Accident">Accident</option>
+                            <option value="Jenkins">Jenkins</option>
+                            <option value="Deploy">Deploy</option>
+                            <option value="Holiday">Holiday</option>
+                            <option value="Clear Discount">Clear Discount</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Discount Reason - include #slack channel if External Team</label>
+                        <textarea id="discountReason" placeholder="Enter reason..." rows="3"></textarea>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Run Job Section -->
+            <section class="section run-job-section">
+                <div class="run-job-header">
+                    <h2>Run Dev or Regression Job</h2>
+                    <button id="runTests" class="btn btn-primary">Run Tests</button>
+                </div>
+                <div class="run-job-controls">
+                    <div class="form-group">
+                        <label>Project to Run:</label>
+                        <select id="projectToRun">
+                            <option value="--">--</option>
+                        </select>
+                    </div>
+                    <div class="form-group-row">
+                        <div class="form-group">
+                            <label>Branch:</label>
+                            <select id="branch">
+                                <option value="dev">dev</option>
+                                <option value="main">main</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Env:</label>
+                            <select id="envToRun">
+                                <option value="TEST">TEST</option>
+                                <option value="PROD">PROD</option>
+                                <option value="A2">A2</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Jira ID:</label>
+                            <input type="text" id="jiraId" value="CRM-" />
+                        </div>
+                        <div class="form-group">
+                            <label>Browser:</label>
+                            <select id="browserToRun">
+                                <option value="">--</option>
+                                <option value="Firefox">Firefox</option>
+                                <option value="Chrome" selected>Chrome</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Tests to Run (space separated):</label>
+                        <input type="text" id="testsToRun" />
+                    </div>
+                </div>
+            </section>
+
+            <!-- Checklist Section -->
+            <section class="section checklist-section">
+                <h2>Nightly Reminders/Checklist</h2>
+                <div class="checklist-controls">
+                    <label>
+                        <input type="checkbox" id="showChecklist" />
+                        Show Checklist
+                    </label>
+                </div>
+                <div id="checklist" class="checklist" style="display: none;">
+                    <label><input type="checkbox" /> Rerun tests that can pass</label>
+                    <label><input type="checkbox" /> Check count stats</label>
+                    <label class="checklist-indent-1"><input type="checkbox" /> Update Project Manager for known changes</label>
+                    <label><input type="checkbox" /> Check for patterns and obvious failures</label>
+                    <label><input type="checkbox" /> Discount failures</label>
+                    <label><input type="checkbox" /> Post stats</label>
+                </div>
+                <div id="reminders" class="reminders">
+                    <div class="reminder-item">
+                        <div class="reminder-text">
+                            If IVR failing tests contain 'Locked' run qe-crm-api-ivr-dotnet-Maintenance job for correct env before rerunning
+                        </div>
+                    </div>
+                    <div class="reminder-item">
+                        <div class="reminder-text">
+                            If phone tests failing with 'Cisco agent for [machineName] is not accepting login for agent', try resetting Jabber client, click Phone link for steps.
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Test Actions Section -->
+            <section class="section test-actions-section">
+                <h2>Actions for Maintenance</h2>
+                <div class="action-buttons-vertical">
+                    <button id="openTestReruns" class="btn btn-primary">Open Test Reruns</button>
+                    <button id="projectManagerLink" class="btn btn-primary">Project Manager</button>
+                    <button id="ivrTest" class="btn btn-secondary">IVR TEST</button>
+                    <button id="ivrProd" class="btn btn-secondary">IVR PROD</button>
+                    <button id="phoneDoc" class="btn btn-secondary">Phone doc</button>
+                    <button id="cyberArk" class="btn btn-secondary">CyberArk</button>
+                </div>
+            </section>
+        </div>
+
+        <!-- Copying Discounts Section -->
+        <section class="section copying-discounts-section">
+            <h2>Copying Yesterday's Discounts</h2>
+            <div class="copy-discounts-controls">
+                <button id="getYesterdays" class="btn btn-primary">Get Previous Day's Discounts</button>
+                <button id="copyDiscounts" class="btn btn-primary">Copy Discounts For Selected</button>
+                <div class="form-group">
+                    <label>Days Back:</label>
+                    <input type="number" id="daysBack" value="4" min="1" />
+                    <button id="getRecentDiscount" class="btn btn-secondary">Get Most Recent Discounts</button>
+                </div>
+            </div>
+            <div class="table-container">
+                <table id="yesterdaysDiscountsTable" class="data-table">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="selectAllDiscounts" /></th>
+                            <th>Id</th>
+                            <th>Type</th>
+                            <th>Env</th>
+                            <th>Project</th>
+                            <th>Test Name</th>
+                            <th>Error</th>
+                            <th>Disc Code</th>
+                            <th>Disc Reason</th>
+                            <th>Build No</th>
+                            <th>Create Date UTC</th>
+                        </tr>
+                    </thead>
+                    <tbody id="yesterdaysDiscountsBody">
+                        <!-- Data will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Stats Section -->
+        <section class="section stats-section">
+            <div class="stats-columns">
+                <div class="stats-column">
+                    <h2>Nightly Stats</h2>
+                    <div class="stats-controls">
+                        <button id="generateStats" class="btn btn-primary">Generate Nightly Stats</button>
+                        <button id="copyStats" class="btn btn-secondary">Copy Stats</button>
+                    </div>
+                    <textarea id="nightlyStats" readonly></textarea>
+                </div>
+                <div class="stats-column">
+                    <h2>Count Stats</h2>
+                    <div class="stats-controls">
+                        <button id="generateCountStats" class="btn btn-primary">Generate Count Stats</button>
+                        <button id="copyCountStats" class="btn btn-secondary">Copy Stats</button>
+                    </div>
+                    <textarea id="countStats" readonly></textarea>
+                </div>
+            </div>
+        </section>
+
+
+    </div>
+
+    <!-- Test Details Modal -->
+    <div id="testDetailsModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Test Details</h2>
+            <div id="testDetailsContent"></div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="spinner"></div>
+        <p>Loading...</p>
+    </div>
+
+    <script src="renderer.js"></script>
+</body>
+</html>
+
