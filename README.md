@@ -12,6 +12,7 @@ Electron application to replace the Nightly Stats Tool Windows Forms application
 ```bash
 cd NightlyStats-Electron
 npm install
+npm install electron
 npm start
 ```
 
