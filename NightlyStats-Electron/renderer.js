@@ -6,6 +6,9 @@ let currentDate = new Date();
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', async () => {
+    // Initialize theme from localStorage
+    initializeTheme();
+    
     // Set default date (yesterday, or Friday if Monday)
     const today = new Date();
     if (today.getDay() === 1) {
@@ -48,6 +51,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 function setupEventListeners() {
+    // Settings modal
+    document.getElementById('settingsBtn').addEventListener('click', openSettings);
+    document.getElementById('closeSettings').addEventListener('click', closeSettings);
+    document.getElementById('themeSelect').addEventListener('change', handleThemeChange);
+    
+    // Table sorting
+    setupTableSorting('failedTestsTable');
+    setupTableSorting('yesterdaysDiscountsTable');
+    
     // Filter controls
     document.getElementById('runDate').addEventListener('change', handleDateChange);
     document.getElementById('envFilter').addEventListener('change', applyFilters);
@@ -55,7 +67,7 @@ function setupEventListeners() {
     document.getElementById('typeFilter').addEventListener('change', applyFilters);
     document.getElementById('browserFilter').addEventListener('change', applyFilters);
     document.getElementById('ownerFilter').addEventListener('change', applyFilters);
-    document.getElementById('notDiscountedOnly').addEventListener('change', applyFilters);
+    document.getElementById('discountedFilter').addEventListener('change', applyFilters);
     
     // Action buttons
     document.getElementById('resetFilters').addEventListener('click', resetFilters);
@@ -64,7 +76,6 @@ function setupEventListeners() {
     document.getElementById('openTestDetails').addEventListener('click', openTestDetails);
     document.getElementById('launchJob').addEventListener('click', launchJob);
     document.getElementById('rerunTest').addEventListener('click', rerunTest);
-    document.getElementById('openTestReruns').addEventListener('click', openTestReruns);
     
     // Discounting
     document.getElementById('discountSelected').addEventListener('click', discountSelectedTests);
@@ -160,14 +171,19 @@ function setupEventListeners() {
     });
     
     // Modal close
-    document.querySelector('.close').addEventListener('click', () => {
+    document.querySelector('#testDetailsModal .close').addEventListener('click', () => {
         document.getElementById('testDetailsModal').style.display = 'none';
     });
     
     window.addEventListener('click', (e) => {
-        const modal = document.getElementById('testDetailsModal');
-        if (e.target === modal) {
-            modal.style.display = 'none';
+        const testDetailsModal = document.getElementById('testDetailsModal');
+        const settingsModal = document.getElementById('settingsModal');
+        
+        if (e.target === testDetailsModal) {
+            testDetailsModal.style.display = 'none';
+        }
+        if (e.target === settingsModal) {
+            settingsModal.style.display = 'none';
         }
     });
 }
@@ -220,7 +236,7 @@ function applyFilters() {
     const type = document.getElementById('typeFilter').value;
     const browser = document.getElementById('browserFilter').value;
     const owner = document.getElementById('ownerFilter').value;
-    const notDiscountedOnly = document.getElementById('notDiscountedOnly').checked;
+    const discountedFilter = document.getElementById('discountedFilter').value;
     
     // Get the selected date and determine target UTC date
     // When user selects 11/19 locally, we want records with UTC date of 11/20
@@ -260,12 +276,29 @@ function applyFilters() {
         if (type !== '--' && test.type.toUpperCase() !== type.toUpperCase()) return false;
         if (browser !== '--' && test.browser !== browser) return false;
         if (owner !== '--' && test.owner !== owner) return false;
-        if (notDiscountedOnly && test.discCode !== '') return false;
+        
+        // Handle discounted filter
+        if (discountedFilter === 'discounted' && (!test.discCode || test.discCode === '')) return false;
+        if (discountedFilter === 'not-discounted' && test.discCode && test.discCode !== '') return false;
+        // 'all' - no filtering needed
+        
         return true;
     });
     
     renderFailedTestsTable();
+    updateTestCounts();
+}
+
+function updateTestCounts() {
+    // Update Tests Displayed
     document.getElementById('totalTests').textContent = filteredFailedTests.length;
+    
+    // Update Total Failed
+    document.getElementById('totalFailed').textContent = filteredFailedTests.length;
+    
+    // Update Total N/A Failed (tests where owner is N/A)
+    const naFailedCount = filteredFailedTests.filter(test => test.owner === 'N/A').length;
+    document.getElementById('totalNAFailed').textContent = naFailedCount;
 }
 
 function renderFailedTestsTable() {
@@ -445,7 +478,7 @@ function resetFilters() {
     document.getElementById('typeFilter').value = '--';
     document.getElementById('browserFilter').value = '--';
     document.getElementById('ownerFilter').value = '--';
-    document.getElementById('notDiscountedOnly').checked = false;
+    document.getElementById('discountedFilter').value = 'all';
     
     const today = new Date();
     if (today.getDay() === 1) {
@@ -816,10 +849,6 @@ async function rerunSingleTest(testId) {
     }
 }
 
-async function openTestReruns() {
-    // This would open a new window or modal with test reruns
-    alert('Test Reruns feature - to be implemented');
-}
 
 async function discountSelectedTests() {
     const selected = getSelectedTests();
@@ -846,7 +875,11 @@ async function discountSelectedTests() {
         for (const test of selected) {
             await window.electronAPI.discountTest(test.id, discountCode, discountReason);
         }
-        showSuccess('Test(s) discounted');
+        
+        // Show appropriate success message based on discount code
+        const successMessage = discountCode === 'Clear Discount' ? 'Discount cleared' : 'Test(s) discounted';
+        showSuccess(successMessage);
+        
         document.getElementById('discountCode').value = '';
         document.getElementById('discountReason').value = '';
         await loadFailedTests();
@@ -1259,12 +1292,18 @@ function showError(message) {
     if (isDbError) {
         showPersistentDbError(message);
     } else {
-        // Regular temporary error
+        // Show error in header
+        const headerMessages = document.getElementById('headerMessages');
+        headerMessages.innerHTML = '';
+        
         const errorDiv = document.createElement('div');
-        errorDiv.className = 'error-message';
+        errorDiv.className = 'header-message header-message-error';
         errorDiv.textContent = message;
-        document.body.insertBefore(errorDiv, document.body.firstChild);
-        setTimeout(() => errorDiv.remove(), 5000);
+        headerMessages.appendChild(errorDiv);
+        
+        setTimeout(() => {
+            errorDiv.remove();
+        }, 5000);
     }
 }
 
@@ -1331,11 +1370,178 @@ function showPersistentDbError(message) {
 }
 
 function showSuccess(message) {
+    const headerMessages = document.getElementById('headerMessages');
+    headerMessages.innerHTML = '';
+    
     const successDiv = document.createElement('div');
-    successDiv.className = 'success-message';
+    successDiv.className = 'header-message header-message-success';
     successDiv.textContent = message;
-    document.body.insertBefore(successDiv, document.body.firstChild);
-    setTimeout(() => successDiv.remove(), 3000);
+    headerMessages.appendChild(successDiv);
+    
+    setTimeout(() => {
+        successDiv.remove();
+    }, 3000);
+}
+
+// Settings modal functions
+function openSettings() {
+    const modal = document.getElementById('settingsModal');
+    modal.style.display = 'block';
+    
+    // Load current theme setting
+    loadThemeSetting();
+}
+
+function closeSettings() {
+    const modal = document.getElementById('settingsModal');
+    modal.style.display = 'none';
+}
+
+function loadThemeSetting() {
+    const themePreference = localStorage.getItem('theme-preference') || 'auto';
+    const themeSelect = document.getElementById('themeSelect');
+    themeSelect.value = themePreference;
+}
+
+function handleThemeChange(e) {
+    const selectedTheme = e.target.value;
+    localStorage.setItem('theme-preference', selectedTheme);
+    
+    if (selectedTheme === 'auto') {
+        // Remove manual override, use system preference
+        localStorage.removeItem('theme-manual');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        applyTheme(prefersDark ? 'dark' : 'light');
+    } else {
+        // Set manual theme
+        localStorage.setItem('theme-manual', 'true');
+        applyTheme(selectedTheme);
+    }
+    
+    showSuccess(`Theme changed to ${selectedTheme === 'auto' ? 'Auto (System)' : selectedTheme}`);
+}
+
+// Theme management functions
+function initializeTheme() {
+    const themePreference = localStorage.getItem('theme-preference') || 'auto';
+    
+    if (themePreference === 'auto') {
+        // Use system preference
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        applyTheme(prefersDark ? 'dark' : 'light');
+        
+        // Listen for system theme changes
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+            // Only auto-switch if still set to auto
+            const currentPreference = localStorage.getItem('theme-preference') || 'auto';
+            if (currentPreference === 'auto') {
+                applyTheme(e.matches ? 'dark' : 'light');
+            }
+        });
+    } else {
+        // Use manually set theme
+        applyTheme(themePreference);
+    }
+}
+
+function applyTheme(theme) {
+    if (theme === 'dark') {
+        document.body.classList.add('dark-theme');
+    } else {
+        document.body.classList.remove('dark-theme');
+    }
+    
+    // Save actual applied theme (for internal use)
+    localStorage.setItem('theme', theme);
+}
+
+// Table sorting functionality
+let currentSort = {
+    table: null,
+    column: null,
+    direction: 'asc'
+};
+
+function setupTableSorting(tableId) {
+    const table = document.getElementById(tableId);
+    if (!table) return;
+    
+    const headers = table.querySelectorAll('thead th');
+    headers.forEach((header, index) => {
+        // Skip the checkbox column (first column)
+        if (index === 0) return;
+        
+        header.classList.add('sortable');
+        header.addEventListener('click', () => {
+            sortTable(tableId, index);
+        });
+    });
+}
+
+function sortTable(tableId, columnIndex) {
+    const table = document.getElementById(tableId);
+    const tbody = table.querySelector('tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    
+    // Determine sort direction
+    let direction = 'asc';
+    if (currentSort.table === tableId && currentSort.column === columnIndex) {
+        direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+    }
+    
+    // Update sort state
+    currentSort = { table: tableId, column: columnIndex, direction };
+    
+    // Remove sorting indicators from all headers
+    const headers = table.querySelectorAll('thead th');
+    headers.forEach(header => {
+        header.classList.remove('sorted-asc', 'sorted-desc');
+    });
+    
+    // Add sorting indicator to current column
+    headers[columnIndex].classList.add(direction === 'asc' ? 'sorted-asc' : 'sorted-desc');
+    
+    // Sort rows
+    rows.sort((a, b) => {
+        const cellA = a.cells[columnIndex];
+        const cellB = b.cells[columnIndex];
+        
+        if (!cellA || !cellB) return 0;
+        
+        let valueA = cellA.textContent.trim();
+        let valueB = cellB.textContent.trim();
+        
+        // Check if it's a checkbox column
+        const checkboxA = cellA.querySelector('input[type="checkbox"]');
+        const checkboxB = cellB.querySelector('input[type="checkbox"]');
+        if (checkboxA && checkboxB) {
+            valueA = checkboxA.checked ? '1' : '0';
+            valueB = checkboxB.checked ? '1' : '0';
+        }
+        
+        // Try to parse as numbers
+        const numA = parseFloat(valueA);
+        const numB = parseFloat(valueB);
+        
+        if (!isNaN(numA) && !isNaN(numB)) {
+            return direction === 'asc' ? numA - numB : numB - numA;
+        }
+        
+        // Try to parse as dates
+        const dateA = new Date(valueA);
+        const dateB = new Date(valueB);
+        
+        if (!isNaN(dateA.getTime()) && !isNaN(dateB.getTime())) {
+            return direction === 'asc' ? dateA - dateB : dateB - dateA;
+        }
+        
+        // String comparison
+        const comparison = valueA.localeCompare(valueB, undefined, { numeric: true, sensitivity: 'base' });
+        return direction === 'asc' ? comparison : -comparison;
+    });
+    
+    // Re-append sorted rows
+    rows.forEach(row => tbody.appendChild(row));
 }
 
 // Make rerunSingleTest available globally for onclick handlers

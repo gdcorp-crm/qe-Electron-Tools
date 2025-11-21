@@ -243,36 +243,72 @@ ipcMain.on('open-test-details-window', (event, details, test) => {
       <meta charset="UTF-8">
       <title>Test Details - ${escapeHtmlForWindow(test.testName)}</title>
       <style>
+        :root {
+          --bg-primary: #f5f5f5;
+          --bg-secondary: white;
+          --text-primary: #333;
+          --text-secondary: #555;
+          --border-color: #ddd;
+          --border-accent: #3498db;
+          --shadow: rgba(0,0,0,0.1);
+          --btn-primary: #3498db;
+          --btn-primary-hover: #2980b9;
+        }
+        
+        @media (prefers-color-scheme: dark) {
+          :root {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2d2d2d;
+            --text-primary: #e0e0e0;
+            --text-secondary: #b0b0b0;
+            --border-color: #444;
+            --border-accent: #4a9eff;
+            --shadow: rgba(0,0,0,0.3);
+            --btn-primary: #4a9eff;
+            --btn-primary-hover: #357abd;
+          }
+        }
+        
         body {
           font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
           padding: 20px;
-          background-color: #f5f5f5;
+          background-color: var(--bg-primary);
+          color: var(--text-primary);
+          transition: background-color 0.3s ease, color 0.3s ease;
         }
         .detail-row {
           margin-bottom: 15px;
           padding: 10px;
-          background-color: white;
+          background-color: var(--bg-secondary);
           border-radius: 4px;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+          box-shadow: 0 1px 3px var(--shadow);
+          transition: background-color 0.3s ease;
         }
         .detail-label {
           font-weight: bold;
-          color: #555;
+          color: var(--text-secondary);
           margin-bottom: 5px;
         }
         .detail-value {
-          color: #333;
+          color: var(--text-primary);
           word-wrap: break-word;
         }
         textarea {
           width: 100%;
           min-height: 100px;
           padding: 8px;
-          border: 1px solid #ddd;
+          border: 1px solid var(--border-color);
           border-radius: 4px;
           font-family: 'Courier New', monospace;
           font-size: 12px;
           resize: vertical;
+          background-color: var(--bg-secondary);
+          color: var(--text-primary);
+          transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+        textarea:focus {
+          outline: none;
+          border-color: var(--border-accent);
         }
         .action-buttons {
           margin-top: 20px;
@@ -286,11 +322,12 @@ ipcMain.on('open-test-details-window', (event, details, test) => {
           cursor: pointer;
           font-size: 14px;
           font-weight: bold;
-          background-color: #3498db;
+          background-color: var(--btn-primary);
           color: white;
+          transition: background-color 0.3s ease;
         }
         .btn:hover {
-          background-color: #2980b9;
+          background-color: var(--btn-primary-hover);
         }
       </style>
     </head>

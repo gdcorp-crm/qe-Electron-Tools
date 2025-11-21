@@ -12,18 +12,27 @@
         <!-- Header -->
         <header>
             <img src="Resources/NightlyStats.ico" alt="Nightly Stats Icon" class="header-icon" onerror="this.style.display='none'">
-            <h1>Nightly Stats Tool</h1>
+            <h1>Nightly Stats Tool <span class="version">v1.0.0</span></h1>
+            <div id="headerMessages" class="header-messages"></div>
+            <button id="settingsBtn" class="settings-btn" title="Settings">
+                <span class="settings-icon">⚙️</span>
+            </button>
         </header>
 
         <!-- Failed Tests Section -->
         <section class="section failed-tests-section">
-            <h2>Failed Tests</h2>
+            <div class="section-header">
+                <h2>Failed Tests</h2>
+                <div class="tests-displayed-container">
+                    <label>Tests Displayed: <span id="totalTests">0</span></label>
+                </div>
+            </div>
             <div class="filters">
                 <div class="filter-group">
                     <label>Run Date:</label>
                     <input type="date" id="runDate" />
                 </div>
-                <div class="filter-group">
+                <div class="filter-group filter-group-env">
                     <label>Env:</label>
                     <select id="envFilter">
                         <option value="--">--</option>
@@ -65,13 +74,17 @@
                     </select>
                 </div>
                 <div class="filter-group">
-                    <label>
-                        <input type="checkbox" id="notDiscountedOnly" />
-                        Not Discounted Only
-                    </label>
+                    <label>Discounted:</label>
+                    <select id="discountedFilter">
+                        <option value="all">All</option>
+                        <option value="discounted">Discounted</option>
+                        <option value="not-discounted">Not Discounted</option>
+                    </select>
                 </div>
                 <div class="filter-group filter-buttons">
                     <button id="resetFilters" class="btn btn-secondary">Reset Filters</button>
+                </div>
+                <div class="filter-group filter-refresh-btn">
                     <button id="refreshTable" class="btn btn-primary">Refresh Table</button>
                 </div>
             </div>
@@ -102,20 +115,22 @@
             </div>
             <div class="table-divider"></div>
             <div class="table-footer-container">
-                <div class="footer-left-section">
-                    <div class="post-stats-button-container">
-                        <button id="postNightlyStats" class="btn btn-success">Post Nightly Stats</button>
-                    </div>
-                    <div class="footer-divider"></div>
-                    <div class="footer-action-buttons">
-                        <button id="openScreenshot" class="btn btn-primary btn-small">Open Screenshot</button>
-                        <button id="openTestDetails" class="btn btn-primary btn-small">Open Test Details</button>
-                        <button id="launchJob" class="btn btn-primary btn-small">Launch Jenkins Run</button>
-                        <button id="rerunTest" class="btn btn-primary btn-small">Rerun Selected Test(s)</button>
-                    </div>
+                <div class="post-stats-button-container">
+                    <button id="postNightlyStats" class="btn btn-success">Post Nightly Stats</button>
                 </div>
-                <div class="tests-displayed-container">
-                    <label>Tests Displayed: <span id="totalTests">0</span></label>
+                <div class="footer-action-buttons">
+                    <button id="openScreenshot" class="btn btn-primary btn-small">Open Screenshot</button>
+                    <button id="openTestDetails" class="btn btn-primary btn-small">Open Test Details</button>
+                    <button id="launchJob" class="btn btn-primary btn-small btn-jenkins">Open Jenkins Run</button>
+                    <button id="rerunTest" class="btn btn-primary btn-small">Rerun Selected Test(s)</button>
+                </div>
+                <div class="footer-counts-section">
+                    <div class="count-item">
+                        <label class="count-label-red">Total N/A Failed: <span id="totalNAFailed">0</span></label>
+                    </div>
+                    <div class="count-item">
+                        <label class="count-label-red">Total Failed: <span id="totalFailed">0</span></label>
+                    </div>
                 </div>
             </div>
         </section>
@@ -126,7 +141,7 @@
             <section class="section discounting-section">
                 <div class="discounting-header">
                     <h2>Manual Discounting</h2>
-                    <button id="discountSelected" class="btn btn-primary">Discount Selected Tests</button>
+                    <button id="discountSelected" class="btn btn-primary">Discount Failed Test(s)</button>
                 </div>
                 <p class="instruction-text">Select test(s) from top table to discount manually</p>
                 <div class="discount-controls">
@@ -204,108 +219,125 @@
 
             <!-- Checklist Section -->
             <section class="section checklist-section">
-                <h2>Nightly Reminders/Checklist</h2>
+                <h2>World Domination Reminders/Checklist</h2>
                 <div class="checklist-controls">
                     <label>
                         <input type="checkbox" id="showChecklist" />
                         Show Checklist
                     </label>
+                    <button id="projectManagerLink" class="btn btn-primary">Project Manager</button>
                 </div>
                 <div id="checklist" class="checklist" style="display: none;">
                     <label><input type="checkbox" /> Rerun tests that can pass</label>
-                    <label><input type="checkbox" /> Check count stats</label>
-                    <label class="checklist-indent-1"><input type="checkbox" /> Update Project Manager for known changes</label>
+                    <label><input type="checkbox" /> Check count stats; Update Project Manager</label>
                     <label><input type="checkbox" /> Check for patterns and obvious failures</label>
                     <label><input type="checkbox" /> Discount failures</label>
                     <label><input type="checkbox" /> Post stats</label>
+                    <label><input type="checkbox" /> Rule the world</label>
                 </div>
                 <div id="reminders" class="reminders">
                     <div class="reminder-item">
-                        <div class="reminder-text">
-                            If IVR failing tests contain 'Locked' run qe-crm-api-ivr-dotnet-Maintenance job for correct env before rerunning
+                        <div class="reminder-text reminder-text-with-buttons">
+                            <span>If IVR failing tests contain 'Locked' run qe-crm-api-ivr-dotnet-Maintenance job for correct env before rerunning</span>
+                            <div class="reminder-buttons">
+                                <button id="ivrTest" class="btn btn-secondary btn-reminder">IVR TEST</button>
+                                <button id="ivrProd" class="btn btn-secondary btn-reminder">IVR PROD</button>
+                            </div>
                         </div>
                     </div>
                     <div class="reminder-item">
-                        <div class="reminder-text">
-                            If phone tests failing with 'Cisco agent for [machineName] is not accepting login for agent', try resetting Jabber client, click Phone link for steps.
+                        <div class="reminder-text reminder-text-with-buttons">
+                            <span>If phone tests failing with 'Cisco agent for [machineName] is not accepting login for agent', try resetting Jabber client, click Phone link for steps.</span>
+                            <div class="reminder-buttons">
+                                <button id="phoneDoc" class="btn btn-secondary btn-reminder">Phone doc</button>
+                                <button id="cyberArk" class="btn btn-secondary btn-reminder">CyberArk</button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </section>
-
-            <!-- Test Actions Section -->
-            <section class="section test-actions-section">
-                <h2>Actions for Maintenance</h2>
-                <div class="action-buttons-vertical">
-                    <button id="openTestReruns" class="btn btn-primary">Open Test Reruns</button>
-                    <button id="projectManagerLink" class="btn btn-primary">Project Manager</button>
-                    <button id="ivrTest" class="btn btn-secondary">IVR TEST</button>
-                    <button id="ivrProd" class="btn btn-secondary">IVR PROD</button>
-                    <button id="phoneDoc" class="btn btn-secondary">Phone doc</button>
-                    <button id="cyberArk" class="btn btn-secondary">CyberArk</button>
                 </div>
             </section>
         </div>
 
-        <!-- Copying Discounts Section -->
-        <section class="section copying-discounts-section">
-            <h2>Copying Yesterday's Discounts</h2>
-            <div class="copy-discounts-controls">
-                <button id="getYesterdays" class="btn btn-primary">Get Previous Day's Discounts</button>
-                <button id="copyDiscounts" class="btn btn-primary">Copy Discounts For Selected</button>
-                <div class="form-group">
-                    <label>Days Back:</label>
-                    <input type="number" id="daysBack" value="4" min="1" />
-                    <button id="getRecentDiscount" class="btn btn-secondary">Get Most Recent Discounts</button>
+        <!-- Discounts and Stats Layout -->
+        <div class="discounts-stats-layout">
+            <!-- Copying Discounts Section -->
+            <section class="section copying-discounts-section">
+                <div class="copying-header">
+                    <h2>Copying Yesterday's Discounts</h2>
+                    <button id="copyDiscounts" class="btn btn-primary">Copy Discounts of Selected</button>
                 </div>
-            </div>
-            <div class="table-container">
-                <table id="yesterdaysDiscountsTable" class="data-table">
-                    <thead>
-                        <tr>
-                            <th><input type="checkbox" id="selectAllDiscounts" /></th>
-                            <th>Id</th>
-                            <th>Type</th>
-                            <th>Env</th>
-                            <th>Project</th>
-                            <th>Test Name</th>
-                            <th>Error</th>
-                            <th>Disc Code</th>
-                            <th>Disc Reason</th>
-                            <th>Build No</th>
-                            <th>Create Date UTC</th>
-                        </tr>
-                    </thead>
-                    <tbody id="yesterdaysDiscountsBody">
-                        <!-- Data will be populated here -->
-                    </tbody>
-                </table>
-            </div>
-        </section>
+                <div class="copy-discounts-controls">
+                    <button id="getYesterdays" class="btn btn-primary">Get Previous Day's Discounts</button>
+                    <label class="days-back-label">Days Back:</label>
+                    <input type="number" id="daysBack" value="4" min="1" class="days-back-input" />
+                    <button id="getRecentDiscount" class="btn btn-secondary">Get Days Back Discounts</button>
+                </div>
+                <div class="table-container">
+                    <table id="yesterdaysDiscountsTable" class="data-table">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" id="selectAllDiscounts" /></th>
+                                <th>Id</th>
+                                <th>Type</th>
+                                <th>Env</th>
+                                <th>Project</th>
+                                <th>Test Name</th>
+                                <th>Error</th>
+                                <th>Disc Code</th>
+                                <th>Disc Reason</th>
+                                <th>Build No</th>
+                                <th>Create Date UTC</th>
+                            </tr>
+                        </thead>
+                        <tbody id="yesterdaysDiscountsBody">
+                            <!-- Data will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
 
-        <!-- Stats Section -->
-        <section class="section stats-section">
-            <div class="stats-columns">
-                <div class="stats-column">
+            <!-- Stats Sections -->
+            <div class="stats-sections-wrapper">
+                <section class="section stats-section-individual">
                     <h2>Nightly Stats</h2>
                     <div class="stats-controls">
                         <button id="generateStats" class="btn btn-primary">Generate Nightly Stats</button>
                         <button id="copyStats" class="btn btn-secondary">Copy Stats</button>
                     </div>
                     <textarea id="nightlyStats" readonly></textarea>
-                </div>
-                <div class="stats-column">
+                </section>
+
+                <section class="section stats-section-individual">
                     <h2>Count Stats</h2>
                     <div class="stats-controls">
                         <button id="generateCountStats" class="btn btn-primary">Generate Count Stats</button>
                         <button id="copyCountStats" class="btn btn-secondary">Copy Stats</button>
                     </div>
                     <textarea id="countStats" readonly></textarea>
+                </section>
+            </div>
+        </div>
+
+
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content settings-modal-content">
+            <span class="close" id="closeSettings">&times;</span>
+            <h2>Settings</h2>
+            <div class="settings-content">
+                <div class="setting-item">
+                    <label for="themeSelect">Theme:</label>
+                    <select id="themeSelect" class="setting-select">
+                        <option value="auto">Auto (System)</option>
+                        <option value="light">Light</option>
+                        <option value="dark">Dark</option>
+                    </select>
+                    <p class="setting-description">Choose your preferred theme. Auto will follow your system settings.</p>
                 </div>
             </div>
-        </section>
-
-
+        </div>
     </div>
 
     <!-- Test Details Modal -->
