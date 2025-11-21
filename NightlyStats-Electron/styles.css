@@ -4,6 +4,17 @@
     box-sizing: border-box;
 }
 
+/* Text selection styling */
+.data-table td::selection {
+    background-color: rgba(100, 149, 237, 0.5);
+    color: inherit;
+}
+
+[data-theme="dark"] .data-table td::selection {
+    background-color: rgba(100, 149, 237, 0.4);
+    color: inherit;
+}
+
 /* Theme Variables */
 :root {
     /* Light Theme Colors */
@@ -44,12 +55,14 @@
     --shadow: rgba(0,0,0,0.1);
     --shadow-modal: rgba(0,0,0,0.1);
     
-    --btn-primary: #3498db;
-    --btn-primary-hover: #2980b9;
+    --btn-primary: #6ba3e8;
+    --btn-primary-hover: #5388c4;
     --btn-secondary: #95a5a6;
     --btn-secondary-hover: #7f8c8d;
-    --btn-success: #27ae60;
-    --btn-success-hover: #229954;
+    --btn-success: #6bb87a;
+    --btn-success-hover: #5a9d68;
+    --btn-success-dark: #4a8657;
+    --btn-success-dark-hover: #3d7049;
     
     --link-color: #007bff;
     --link-hover: #0056b3;
@@ -102,6 +115,8 @@ body.dark-theme {
     --btn-secondary-hover: #555;
     --btn-success: #6bb87a;
     --btn-success-hover: #5a9d68;
+    --btn-success-dark: #4a8657;
+    --btn-success-dark-hover: #3d7049;
     
     --link-color: #5a9fff;
     --link-hover: #7ab3ff;
@@ -182,6 +197,18 @@ header h1 .version {
     background-color: var(--bg-error);
     color: var(--text-error);
     border: 1px solid var(--border-error);
+}
+
+.header-message-warning {
+    background-color: #f5d76e;
+    color: #856404;
+    border: 1px solid #d4a745;
+}
+
+body.dark-theme .header-message-warning {
+    background-color: #5a5230;
+    color: #f5d76e;
+    border: 1px solid #7a7240;
 }
 
 @keyframes slideIn {
@@ -295,6 +322,7 @@ header h1 .version {
     flex-direction: row;
     gap: 6px;
     align-items: flex-end;
+    margin-left: 25px;
 }
 
 .filter-group.tests-displayed {
@@ -382,6 +410,15 @@ header h1 .version {
 
 .btn-success:hover {
     background-color: var(--btn-success-hover);
+}
+
+.btn-success-dark {
+    background-color: var(--btn-success-dark);
+    color: white;
+}
+
+.btn-success-dark:hover {
+    background-color: var(--btn-success-dark-hover);
 }
 
 .table-container {
@@ -474,8 +511,18 @@ body.dark-theme .count-label-red {
     overflow: hidden;
     text-overflow: ellipsis;
     line-height: 1.2;
-    font-size: 11px;
+    font-size: 12px;
     transition: background-color 0.2s ease;
+}
+
+.data-table td {
+    user-select: text;
+    cursor: text;
+}
+
+.data-table td:first-child {
+    cursor: default;
+    user-select: none;
 }
 
 .data-table th {
@@ -484,6 +531,14 @@ body.dark-theme .count-label-red {
     user-select: none;
     position: relative;
     padding-right: 15px;
+}
+
+.data-table th.sortable:hover {
+    background-color: var(--hover-color);
+}
+
+.data-table th.sortable:active {
+    transform: scale(0.98);
 }
 
 .data-table th:hover {
@@ -587,7 +642,9 @@ body.dark-theme .count-label-red {
 }
 
 .discounting-section {
-    flex: 0 0 25%;
+    flex: 1;
+    min-width: 200px;
+    max-width: 25%;
     display: flex;
     flex-direction: column;
 }
@@ -602,10 +659,14 @@ body.dark-theme .count-label-red {
 .discounting-section h2 {
     margin-bottom: 0;
     padding-bottom: 5px;
+    border-bottom: 2px solid var(--border-accent);
+    display: inline-block;
 }
 
 .run-job-section {
-    flex: 0.9;
+    flex: 1.2;
+    max-width: 30%;
+    min-width: 250px;
     background: var(--bg-secondary);
     padding: 10px 15px;
     margin-bottom: 10px;
@@ -619,22 +680,48 @@ body.dark-theme .count-label-red {
 .run-job-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-end;
     margin-bottom: 8px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.run-job-header .btn {
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .run-job-section h2 {
     margin-bottom: 0;
     margin-top: 0;
     padding-bottom: 5px;
-    flex: 0 0 auto;
+    border-bottom: 2px solid var(--border-accent);
 }
 
 .checklist-section {
-    flex: 1;
-    min-width: 385px;
+    flex: 1.8;
+    min-width: 250px;
+    max-width: 45%;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
+}
+
+.checklist-section h2 {
+    margin-bottom: 8px;
+    border-bottom: 2px solid var(--border-accent);
+    padding-bottom: 5px;
+    width: fit-content;
+}
+
+.quick-actions-section {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    padding: 15px;
+    margin-bottom: 15px;
 }
 
 .run-job-controls {
@@ -659,10 +746,12 @@ body.dark-theme .count-label-red {
     display: flex;
     gap: 10px;
     align-items: flex-end;
+    flex-wrap: wrap;
 }
 
 .form-group-row .form-group {
     flex: 1;
+    min-width: 100px;
 }
 
 .form-group-row .run-tests-button-container {
@@ -771,6 +860,9 @@ body.dark-theme .count-label-red {
 
 .copying-discounts-section {
     flex: 0 0 50%;
+    width: 50%;
+    max-width: 50%;
+    min-width: 50%;
 }
 
 .copying-header {
@@ -801,10 +893,19 @@ body.dark-theme .count-label-red {
     flex-direction: column;
 }
 
-.stats-controls {
+.stats-header {
     display: flex;
-    gap: 6px;
-    margin-bottom: 6px;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.stats-header h2 {
+    margin-bottom: 0;
+    border-bottom: 2px solid var(--border-accent);
+    padding-bottom: 5px;
+    display: inline-block;
+    width: auto;
 }
 
 .stats-section-individual textarea {
@@ -876,6 +977,7 @@ body.dark-theme .count-label-red {
     margin-top: 8px;
     flex: 1;
     min-height: 0;
+    overflow-x: auto;
 }
 
 .reminder-item {
@@ -888,8 +990,8 @@ body.dark-theme .count-label-red {
 
 .reminder-text {
     flex: 0 0 360px;
-    min-width: 360px;
-    max-width: 360px;
+    min-width: 280px;
+    max-width: 100%;
     padding: 8px;
     background-color: var(--bg-reminder);
     border: 1px solid var(--border-color);

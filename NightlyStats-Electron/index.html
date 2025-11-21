@@ -74,7 +74,7 @@
                     </select>
                 </div>
                 <div class="filter-group">
-                    <label>Discounted:</label>
+                    <label>Discount State:</label>
                     <select id="discountedFilter">
                         <option value="all">All</option>
                         <option value="discounted">Discounted</option>
@@ -122,7 +122,7 @@
                     <button id="openScreenshot" class="btn btn-primary btn-small">Open Screenshot</button>
                     <button id="openTestDetails" class="btn btn-primary btn-small">Open Test Details</button>
                     <button id="launchJob" class="btn btn-primary btn-small btn-jenkins">Open Jenkins Run</button>
-                    <button id="rerunTest" class="btn btn-primary btn-small">Rerun Selected Test(s)</button>
+                    <button id="rerunTest" class="btn btn-success-dark btn-small">Rerun Selected Test(s)</button>
                 </div>
                 <div class="footer-counts-section">
                     <div class="count-item">
@@ -140,8 +140,8 @@
             <!-- Discounting Section -->
             <section class="section discounting-section">
                 <div class="discounting-header">
-                    <h2>Manual Discounting</h2>
-                    <button id="discountSelected" class="btn btn-primary">Discount Failed Test(s)</button>
+                    <h2>Manual Discounts</h2>
+                    <button id="discountSelected" class="btn btn-primary">Discount</button>
                 </div>
                 <p class="instruction-text">Select test(s) from top table to discount manually</p>
                 <div class="discount-controls">
@@ -171,7 +171,7 @@
             <!-- Run Job Section -->
             <section class="section run-job-section">
                 <div class="run-job-header">
-                    <h2>Run Dev or Regression Job</h2>
+                    <h2>Run Regression</h2>
                     <button id="runTests" class="btn btn-primary">Run Tests</button>
                 </div>
                 <div class="run-job-controls">
@@ -225,7 +225,6 @@
                         <input type="checkbox" id="showChecklist" />
                         Show Checklist
                     </label>
-                    <button id="projectManagerLink" class="btn btn-primary">Project Manager</button>
                 </div>
                 <div id="checklist" class="checklist" style="display: none;">
                     <label><input type="checkbox" /> Rerun tests that can pass</label>
@@ -258,19 +257,27 @@
             </section>
         </div>
 
+        <!-- Quick Actions Section -->
+        <section class="section quick-actions-section">
+            <button id="projectManagerLink" class="btn btn-primary">Project Manager</button>
+            <button class="btn btn-primary" disabled>Button 2</button>
+            <button class="btn btn-primary" disabled>Button 3</button>
+            <button class="btn btn-primary" disabled>Button 4</button>
+        </section>
+
         <!-- Discounts and Stats Layout -->
         <div class="discounts-stats-layout">
             <!-- Copying Discounts Section -->
             <section class="section copying-discounts-section">
                 <div class="copying-header">
-                    <h2>Copying Yesterday's Discounts</h2>
-                    <button id="copyDiscounts" class="btn btn-primary">Copy Discounts of Selected</button>
+                    <h2>Copy Previous Discounts</h2>
+                    <button id="copyDiscounts" class="btn btn-primary">Copy Discounts</button>
                 </div>
                 <div class="copy-discounts-controls">
-                    <button id="getYesterdays" class="btn btn-primary">Get Previous Day's Discounts</button>
+                    <button id="getYesterdays" class="btn btn-primary">Get Previous Day's</button>
                     <label class="days-back-label">Days Back:</label>
                     <input type="number" id="daysBack" value="4" min="1" class="days-back-input" />
-                    <button id="getRecentDiscount" class="btn btn-secondary">Get Days Back Discounts</button>
+                    <button id="getRecentDiscount" class="btn btn-primary">Get Days Back</button>
                 </div>
                 <div class="table-container">
                     <table id="yesterdaysDiscountsTable" class="data-table">
@@ -299,19 +306,17 @@
             <!-- Stats Sections -->
             <div class="stats-sections-wrapper">
                 <section class="section stats-section-individual">
-                    <h2>Nightly Stats</h2>
-                    <div class="stats-controls">
+                    <div class="stats-header">
+                        <h2>Nightly Stats</h2>
                         <button id="generateStats" class="btn btn-primary">Generate Nightly Stats</button>
-                        <button id="copyStats" class="btn btn-secondary">Copy Stats</button>
                     </div>
                     <textarea id="nightlyStats" readonly></textarea>
                 </section>
 
                 <section class="section stats-section-individual">
-                    <h2>Count Stats</h2>
-                    <div class="stats-controls">
+                    <div class="stats-header">
+                        <h2>Count Stats</h2>
                         <button id="generateCountStats" class="btn btn-primary">Generate Count Stats</button>
-                        <button id="copyCountStats" class="btn btn-secondary">Copy Stats</button>
                     </div>
                     <textarea id="countStats" readonly></textarea>
                 </section>
@@ -334,7 +339,16 @@
                         <option value="light">Light</option>
                         <option value="dark">Dark</option>
                     </select>
-                    <p class="setting-description">Choose your preferred theme. Auto will follow your system settings.</p>
+                </div>
+                <div class="setting-item">
+                    <label for="ownerAtStart">Owner at Start:</label>
+                    <select id="ownerAtStart" class="setting-select">
+                        <option value="--">--</option>
+                        <option value="Christa">Christa</option>
+                        <option value="Becky">Becky</option>
+                        <option value="Abbee">Abbee</option>
+                        <option value="N/A">N/A</option>
+                    </select>
                 </div>
             </div>
         </div>

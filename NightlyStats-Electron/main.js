@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, Menu } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { exec } = require('child_process');
@@ -16,6 +16,7 @@ function createWindow() {
   const windowOptions = {
     width: 1920,
     height: 1080,
+    autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
@@ -43,6 +44,9 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
+  // Remove the menu bar completely
+  Menu.setApplicationMenu(null);
+  
   createWindow();
 
   app.on('activate', () => {

@@ -9,6 +9,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Initialize theme from localStorage
     initializeTheme();
     
+    // Initialize Owner at Start setting
+    initializeOwnerAtStart();
+    
     // Set default date (yesterday, or Friday if Monday)
     const today = new Date();
     if (today.getDay() === 1) {
@@ -55,6 +58,7 @@ function setupEventListeners() {
     document.getElementById('settingsBtn').addEventListener('click', openSettings);
     document.getElementById('closeSettings').addEventListener('click', closeSettings);
     document.getElementById('themeSelect').addEventListener('change', handleThemeChange);
+    document.getElementById('ownerAtStart').addEventListener('change', handleOwnerAtStartChange);
     
     // Table sorting
     setupTableSorting('failedTestsTable');
@@ -85,9 +89,7 @@ function setupEventListeners() {
     
     // Stats
     document.getElementById('generateStats').addEventListener('click', generateStats);
-    document.getElementById('copyStats').addEventListener('click', copyStats);
     document.getElementById('generateCountStats').addEventListener('click', generateCountStats);
-    document.getElementById('copyCountStats').addEventListener('click', copyCountStats);
     document.getElementById('postNightlyStats').addEventListener('click', postNightlyStats);
     
     // Run job
@@ -293,11 +295,11 @@ function updateTestCounts() {
     // Update Tests Displayed
     document.getElementById('totalTests').textContent = filteredFailedTests.length;
     
-    // Update Total Failed
-    document.getElementById('totalFailed').textContent = filteredFailedTests.length;
+    // Update Total Failed (from all tests, not filtered)
+    document.getElementById('totalFailed').textContent = allFailedTests.length;
     
-    // Update Total N/A Failed (tests where owner is N/A)
-    const naFailedCount = filteredFailedTests.filter(test => test.owner === 'N/A').length;
+    // Update Total N/A Failed (tests where owner is N/A from all tests, not filtered)
+    const naFailedCount = allFailedTests.filter(test => test.owner === 'N/A').length;
     document.getElementById('totalNAFailed').textContent = naFailedCount;
 }
 
@@ -580,7 +582,7 @@ function getSelectedDiscounts() {
 async function openScreenshot() {
     const selected = getSelectedTests();
     if (selected.length === 0) {
-        alert('No tests selected');
+        showWarning('No test selected for Open Screenshot action');
         return;
     }
     
@@ -652,7 +654,7 @@ async function openScreenshot() {
 async function openTestDetails() {
     const selected = getSelectedTests();
     if (selected.length === 0) {
-        alert('No tests selected');
+        showWarning('No test selected for Open Test Details action');
         return;
     }
     
@@ -755,7 +757,7 @@ function showTestDetailsModal(details, test, currentIndex, totalCount) {
 async function launchJob() {
     const selected = getSelectedTests();
     if (selected.length === 0) {
-        alert('No tests selected');
+        showWarning('No test selected for Open Jenkins Run action');
         return;
     }
     
@@ -768,7 +770,7 @@ async function launchJob() {
 async function rerunTest() {
     const selected = getSelectedTests();
     if (selected.length === 0) {
-        alert('No tests selected');
+        showWarning('No test selected for Rerun Selected Test(s) action');
         return;
     }
     
@@ -853,7 +855,7 @@ async function rerunSingleTest(testId) {
 async function discountSelectedTests() {
     const selected = getSelectedTests();
     if (selected.length === 0) {
-        alert('No tests selected');
+        showWarning('No test selected for Discount action');
         return;
     }
     
@@ -861,12 +863,12 @@ async function discountSelectedTests() {
     const discountReason = document.getElementById('discountReason').value;
     
     if (!discountCode) {
-        alert('The Discount Code is not selected');
+        showWarning('No discount code selected for Discount action');
         return;
     }
     
     if (!discountReason && discountCode !== 'Clear Discount') {
-        alert('The Discount Reason is not set');
+        showWarning('No discount reason provided for Discount action');
         return;
     }
     
@@ -926,7 +928,7 @@ async function getRecentDiscounts() {
 async function copyDiscounts() {
     const selected = getSelectedDiscounts();
     if (selected.length === 0) {
-        alert('No tests selected');
+        showWarning('No test selected for Copy Discounts action');
         return;
     }
     
@@ -998,11 +1000,11 @@ async function generateStats() {
             let line = '';
             
             if (stat.prodCount > 0 && stat.testCount > 0) {
-                line = `(PROD/TEST) [${appName}](https://echoqa.jenkins.int.godaddy.com/job/${stat.project}) (${stat.prodCount}/${stat.testCount}) (${owner})`;
+                line = `(PROD/TEST) ${appName} (${stat.prodCount}/${stat.testCount}) (${owner})`;
             } else if (stat.prodCount > 0) {
-                line = `(PROD) [${appName}](https://echoqa.jenkins.int.godaddy.com/job/${stat.project}) (${stat.prodCount}) (${owner})`;
+                line = `(PROD) ${appName} (${stat.prodCount}) (${owner})`;
             } else if (stat.testCount > 0) {
-                line = `(TEST) [${appName}](https://echoqa.jenkins.int.godaddy.com/job/${stat.project}) (${stat.testCount}) (${owner})`;
+                line = `(TEST) ${appName} (${stat.testCount}) (${owner})`;
             }
             
             if (stat.discountReasons) {
@@ -1039,11 +1041,11 @@ async function generateStats() {
                 let line = '';
                 
                 if (stat.prodCount > 0 && stat.testCount > 0) {
-                    line = `(PROD/TEST) [${appName}](https://echoqa.jenkins.int.godaddy.com/job/${stat.project}) (${stat.prodCount}/${stat.testCount}) (${owner})`;
+                    line = `(PROD/TEST) ${appName} (${stat.prodCount}/${stat.testCount}) (${owner})`;
                 } else if (stat.prodCount > 0) {
-                    line = `(PROD) [${appName}](https://echoqa.jenkins.int.godaddy.com/job/${stat.project}) (${stat.prodCount}) (${owner})`;
+                    line = `(PROD) ${appName} (${stat.prodCount}) (${owner})`;
                 } else if (stat.testCount > 0) {
-                    line = `(TEST) [${appName}](https://echoqa.jenkins.int.godaddy.com/job/${stat.project}) (${stat.testCount}) (${owner})`;
+                    line = `(TEST) ${appName} (${stat.testCount}) (${owner})`;
                 }
                 
                 if (stat.discountReasons) {
@@ -1097,13 +1099,6 @@ function getStatsAppName(projectName) {
     ).join(' ');
 }
 
-function copyStats() {
-    const stats = document.getElementById('nightlyStats').value;
-    navigator.clipboard.writeText(stats).then(() => {
-        document.getElementById('nightlyStats').value += '\n\n!!COPIED!!';
-        showSuccess('Stats copied to clipboard');
-    });
-}
 
 async function generateCountStats() {
     showLoading();
@@ -1131,13 +1126,6 @@ async function generateCountStats() {
     }
 }
 
-function copyCountStats() {
-    const stats = document.getElementById('countStats').value;
-    navigator.clipboard.writeText(stats).then(() => {
-        document.getElementById('countStats').value += '\n\n!!COPIED!!';
-        showSuccess('Count stats copied to clipboard');
-    });
-}
 
 async function runTests() {
     const project = document.getElementById('projectToRun').value;
@@ -1148,12 +1136,12 @@ async function runTests() {
     const tests = document.getElementById('testsToRun').value;
     
     if (project === '--') {
-        alert('Select a project to run');
+        showWarning('No project selected for Run Tests action');
         return;
     }
     
     if (!branch) {
-        alert('Select a branch to run');
+        showWarning('Select a branch to run');
         return;
     }
     
@@ -1383,13 +1371,28 @@ function showSuccess(message) {
     }, 3000);
 }
 
+function showWarning(message) {
+    const headerMessages = document.getElementById('headerMessages');
+    headerMessages.innerHTML = '';
+    
+    const warningDiv = document.createElement('div');
+    warningDiv.className = 'header-message header-message-warning';
+    warningDiv.textContent = message;
+    headerMessages.appendChild(warningDiv);
+    
+    setTimeout(() => {
+        warningDiv.remove();
+    }, 3000);
+}
+
 // Settings modal functions
 function openSettings() {
     const modal = document.getElementById('settingsModal');
     modal.style.display = 'block';
     
-    // Load current theme setting
+    // Load current settings
     loadThemeSetting();
+    loadOwnerAtStartSetting();
 }
 
 function closeSettings() {
@@ -1401,6 +1404,28 @@ function loadThemeSetting() {
     const themePreference = localStorage.getItem('theme-preference') || 'auto';
     const themeSelect = document.getElementById('themeSelect');
     themeSelect.value = themePreference;
+}
+
+function loadOwnerAtStartSetting() {
+    const ownerAtStart = localStorage.getItem('owner-at-start') || '--';
+    const ownerSelect = document.getElementById('ownerAtStart');
+    ownerSelect.value = ownerAtStart;
+}
+
+function handleOwnerAtStartChange(e) {
+    const selectedOwner = e.target.value;
+    localStorage.setItem('owner-at-start', selectedOwner);
+    showSuccess(`Owner at Start set to ${selectedOwner}`);
+}
+
+function initializeOwnerAtStart() {
+    const ownerAtStart = localStorage.getItem('owner-at-start');
+    if (ownerAtStart) {
+        const ownerFilter = document.getElementById('ownerFilter');
+        if (ownerFilter) {
+            ownerFilter.value = ownerAtStart;
+        }
+    }
 }
 
 function handleThemeChange(e) {
@@ -1475,6 +1500,48 @@ function setupTableSorting(tableId) {
         header.addEventListener('click', () => {
             sortTable(tableId, index);
         });
+        
+        // Add double-click to select entire column
+        header.addEventListener('dblclick', (e) => {
+            e.preventDefault();
+            selectColumn(tableId, index);
+        });
+        
+        // Update title to show double-click functionality
+        const originalTitle = header.title || header.textContent;
+        header.title = `${originalTitle}\nDouble-click to select entire column`;
+    });
+}
+
+function selectColumn(tableId, columnIndex) {
+    const table = document.getElementById(tableId);
+    const tbody = table.querySelector('tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    
+    // Get all cell values from this column
+    const columnValues = rows.map(row => {
+        const cell = row.cells[columnIndex];
+        if (!cell) return '';
+        
+        // Handle checkbox cells differently
+        const checkbox = cell.querySelector('input[type="checkbox"]');
+        if (checkbox) {
+            return checkbox.checked ? 'true' : 'false';
+        }
+        
+        return cell.textContent.trim();
+    }).filter(val => val !== '');
+    
+    // Join with newlines and copy to clipboard
+    const textToCopy = columnValues.join('\n');
+    
+    navigator.clipboard.writeText(textToCopy).then(() => {
+        const header = table.querySelectorAll('thead th')[columnIndex];
+        const columnName = header.textContent.replace(/[▲▼]/g, '').trim();
+        showSuccess(`Copied ${columnValues.length} ${columnName} values to clipboard`);
+    }).catch(err => {
+        showError('Failed to copy column values');
+        console.error('Copy failed:', err);
     });
 }
 
