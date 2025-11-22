@@ -240,39 +240,14 @@ function applyFilters() {
     const owner = document.getElementById('ownerFilter').value;
     const discountedFilter = document.getElementById('discountedFilter').value;
     
-    // Get the selected date and determine target UTC date
-    // When user selects 11/19 locally, we want records with UTC date of 11/20
-    const selectedDate = document.getElementById('runDate').valueAsDate;
-    let targetUtcDate = null;
-    if (selectedDate) {
-        // valueAsDate returns a Date at UTC midnight for the selected date
-        // We want to add 1 day to get the target UTC date (11/19 -> 11/20)
-        const targetDate = new Date(selectedDate);
-        targetDate.setUTCDate(targetDate.getUTCDate() + 1);
-        
-        targetUtcDate = {
-            year: targetDate.getUTCFullYear(),
-            month: targetDate.getUTCMonth(),
-            day: targetDate.getUTCDate()
-        };
-    }
+    console.log(`Applying filters - allFailedTests.length: ${allFailedTests.length}`);
+    console.log(`Filters: env=${env}, project=${project}, type=${type}, browser=${browser}, owner=${owner}, discounted=${discountedFilter}`);
+    
+    // NOTE: Date filtering is already done in loadFailedTests() via the database query
+    // So we don't need to filter by date again here - all records in allFailedTests
+    // already match the selected date
     
     filteredFailedTests = allFailedTests.filter(test => {
-        // Filter by selected date (compare UTC dates)
-        if (targetUtcDate && test.createDateUtc) {
-            const testDateUtc = new Date(test.createDateUtc);
-            const testYear = testDateUtc.getUTCFullYear();
-            const testMonth = testDateUtc.getUTCMonth();
-            const testDay = testDateUtc.getUTCDate();
-            
-            // Compare UTC dates (year, month, day only)
-            if (testYear !== targetUtcDate.year || 
-                testMonth !== targetUtcDate.month || 
-                testDay !== targetUtcDate.day) {
-                return false;
-            }
-        }
-        
         if (env !== '--' && test.env !== env) return false;
         if (project !== '--' && test.project !== project) return false;
         if (type !== '--' && test.type.toUpperCase() !== type.toUpperCase()) return false;
@@ -286,6 +261,8 @@ function applyFilters() {
         
         return true;
     });
+    
+    console.log(`After filtering - filteredFailedTests.length: ${filteredFailedTests.length}`);
     
     renderFailedTestsTable();
     updateTestCounts();
@@ -306,6 +283,8 @@ function updateTestCounts() {
 function renderFailedTestsTable() {
     const tbody = document.getElementById('failedTestsBody');
     tbody.innerHTML = '';
+    
+    console.log(`Rendering table with ${filteredFailedTests.length} tests`);
     
     filteredFailedTests.forEach(test => {
         const row = document.createElement('tr');
@@ -396,6 +375,8 @@ function renderFailedTestsTable() {
         
         tbody.appendChild(row);
     });
+    
+    console.log(`Rendered ${tbody.children.length} rows to table`);
     
     // Update select all checkbox state
     updateSelectAllCheckbox();

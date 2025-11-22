@@ -452,9 +452,11 @@ body.dark-theme .header-message-warning {
     overflow-y: auto;
     border: 1px solid var(--border-color);
     border-radius: 4px;
-    /* Responsive height: grows with content, max 60vh for scrolling */
-    max-height: 60vh;
-    min-height: calc(32px + (5 * (11px * 1.2 + 4px + 1px))); /* Minimum height for header + 5 rows */
+    /* Show exactly 20 rows, then scroll for the rest */
+    /* Row height: 2px padding + (12px font * 1.2 line-height) + 2px padding = ~18.4px */
+    /* Header: ~18.4px, 20 rows: 20 * 18.4px = 368px, total: ~390px */
+    max-height: 390px;
+    width: 100%;
     background-color: var(--bg-secondary);
     transition: background-color 0.3s ease, border-color 0.3s ease;
 }
@@ -518,6 +520,11 @@ body.dark-theme .header-message-warning {
 
 body.dark-theme .count-label-red {
     color: #ff6b6b;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
 }
 
 .data-table thead {

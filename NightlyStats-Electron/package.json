@@ -6,8 +6,8 @@
   "scripts": {
     "start": "electron .",
     "dev": "electron . --dev",
-    "build": "electron-packager . \"Nightly Stats\" --platform=win32 --arch=x64 --out=dist --overwrite --asar --icon=Resources/NightlyStats.ico",
-    "build:installer": "set CSC_IDENTITY_AUTO_DISCOVERY=false && electron-builder --win nsis"
+    "build": "electron-builder --win portable",
+    "build:installer": "electron-builder --win nsis"
   },
   "keywords": [
     "electron",
@@ -18,8 +18,7 @@
   "license": "ISC",
   "devDependencies": {
     "electron": "^39.2.3",
-    "electron-builder": "^24.6.4",
-    "electron-packager": "^17.1.2"
+    "electron-builder": "^24.6.4"
   },
   "dependencies": {
     "axios": "^1.7.9",
